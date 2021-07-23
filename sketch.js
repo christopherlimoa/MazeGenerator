@@ -1,7 +1,100 @@
 let cols,rows;
-const w = 40;
+const w = 25;
+// const w = 40;
 
 let cells = [];
+
+let currentCell;
+let visitedCells = [];
+let stack = [];
+
+function getIndex(x,y){
+    if(x <0)
+        return -1;
+    else if(y<0)
+        return -1;
+    else if(x>cols-1)
+        return -1;
+    else if(y>rows-1)
+        return -1;
+
+    return y*cols + x;
+}
+
+function checkNeighbour(cell){
+    let unvisitedNeighbour = [];
+    let x = cell.x;
+    let y = cell.y;
+
+    // cell above
+    let index = getIndex(x, y-1);
+    if(index != -1){
+        let neighbour = cells[index];
+        if(!neighbour.visited)
+            unvisitedNeighbour.push(neighbour)
+    }
+    
+    // cell to right 
+    index = getIndex(x+1, y);
+    if(index != -1){
+        let neighbour = cells[index];
+        if(!neighbour.visited)
+            unvisitedNeighbour.push(neighbour)
+    }
+
+    // cell below
+    index = getIndex(x, y+1);
+
+    if(index != -1){
+        let neighbour = cells[index];
+        if(!neighbour.visited)
+            unvisitedNeighbour.push(neighbour)
+    }
+
+    // cell to left 
+    index = getIndex(x-1, y);
+    if(index != -1){
+        let neighbour = cells[index];
+        if(!neighbour.visited)
+            unvisitedNeighbour.push(neighbour)
+    }
+
+    return unvisitedNeighbour;
+}
+
+function removeWalls(cell, neighbour){
+    let cellIndex = getIndex(cell.x, cell.y);
+    let neighbourIndex = getIndex(neighbour.x, neighbour.y);
+
+    // cell left and neighbour right
+    if(cellIndex - neighbourIndex == -1){
+        cell.walls[1] = false;
+        neighbour.walls[3] = false;
+    }
+
+    // cell top and neighbour bottom
+    else if(cellIndex - neighbourIndex < -1){
+        cell.walls[2] = false;
+        neighbour.walls[0] = false;
+    }
+
+    // cell right and neighbour left
+    else if(cellIndex - neighbourIndex == 1){
+        cell.walls[3] = false;
+        neighbour.walls[1] = false;
+    }
+    
+    // cell bottom and neighbour top
+    else if(cellIndex - neighbourIndex > 1){
+        cell.walls[0] = false;
+        neighbour.walls[2] = false;
+    }
+
+    else{
+        console.log("something's not right...");
+    }
+}
+
 
 function setup(){
     createCanvas(400,400);
@@ -9,9 +102,32 @@ function setup(){
     cols = floor(width/w);
     rows = floor(height/w);
 
-    for(let i=0;i<cols;i++){
-        for(let j=0;j<rows;j++){
-            cells.push(new Cell(i,j))
+    frameRate(5);
+
+    for(let j=0;j<rows;j++){
+        for(let i=0;i<cols;i++){
+            cells.push(new Cell(i,j));
+        }
+    }
+
+    currentCell = cells[0];
+    currentCell.visited = true;
+
+    stack.push(currentCell);
+
+    while(stack.length){
+        currentCell = stack.pop();
+
+        let unvisitedNeighbours = checkNeighbour(currentCell);
+
+        if(unvisitedNeighbours.length){
+            stack.push(currentCell);
+            
+            let randomNeighbour = unvisitedNeighbours[Math.floor(Math.random() * unvisitedNeighbours.length)];
+            removeWalls(currentCell, randomNeighbour)
+            randomNeighbour.visited = true;
+            stack.push(randomNeighbour);
+
         }
     }
 }
@@ -29,20 +145,37 @@ class Cell {
     constructor(x, y) {
       this.x = x;
       this.y = y;
+      this.visited = false;
+      this.walls = [true, true, true, true];     // [top, right, bottom, left]
     }
 
     draw(){
         let x = this.x * w;
         let y = this.y * w;
         
-        stroke(255)
+        stroke(255);
+
         // top line of rect
-        line(x, y, x+w, y)
+        if(this.walls[0])
+            line(x, y, x+w, y);
+
         // right line of rect
-        line(x+w, y, x+w, y+w)
+        if(this.walls[1])
+            line(x+w, y, x+w, y+w);
+
         // bottom line of rect
-        line(x+w, y+w, x, y+w)
+        if(this.walls[2])
+            line(x+w, y+w, x, y+w);
+        
         // left line of rect
-        line(x, y+w, x, y)
+        if(this.walls[3])
+            line(x, y+w, x, y);
+
+        if(this.visited){
+            fill("#40916c");
+            noStroke();
+            rect(x, y, w,w);
+        }
+            
     }
   }
