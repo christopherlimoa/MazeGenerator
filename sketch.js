@@ -1,10 +1,14 @@
+// Project inspired by Daniel Shiffman, Coding Train
+
+// Pseudocode of Algorithm Generation
+// https://en.wikipedia.org/wiki/Maze_generation_algorithm#Iterative_implementation
+
 let cols,rows;
 const w = 25;
-// const w = 40;
 
 let cells = [];
 
-let currentCell;
+let currentCell, randomNeighbour;
 let visitedCells = [];
 let stack = [];
 
@@ -98,11 +102,10 @@ function removeWalls(cell, neighbour){
 
 function setup(){
     createCanvas(400,400);
+    frameRate(10);
 
     cols = floor(width/w);
     rows = floor(height/w);
-
-    frameRate(5);
 
     for(let j=0;j<rows;j++){
         for(let i=0;i<cols;i++){
@@ -112,31 +115,30 @@ function setup(){
 
     currentCell = cells[0];
     currentCell.visited = true;
-
     stack.push(currentCell);
-
-    while(stack.length){
-        currentCell = stack.pop();
-
-        let unvisitedNeighbours = checkNeighbour(currentCell);
-
-        if(unvisitedNeighbours.length){
-            stack.push(currentCell);
-            
-            let randomNeighbour = unvisitedNeighbours[Math.floor(Math.random() * unvisitedNeighbours.length)];
-            removeWalls(currentCell, randomNeighbour)
-            randomNeighbour.visited = true;
-            stack.push(randomNeighbour);
-
-        }
-    }
 }
 
 function draw(){
     background(51);
-
+    
     for(let i=0; i< cells.length; i++){
         cells[i].draw();
+    }
+    
+    currentCell = stack.pop();
+    currentCell.highlight();
+
+
+    let unvisitedNeighbours = checkNeighbour(currentCell);
+
+    if(unvisitedNeighbours.length){
+        stack.push(currentCell);
+        
+        randomNeighbour = unvisitedNeighbours[Math.floor(Math.random() * unvisitedNeighbours.length)];
+
+        removeWalls(currentCell, randomNeighbour)
+        randomNeighbour.visited = true;
+        stack.push(randomNeighbour);
     }
 
 }
@@ -178,4 +180,12 @@ class Cell {
         }
             
     }
+
+    highlight() {
+        let x = this.x * w;
+        let y = this.y * w;
+        noStroke();
+        fill(255, 0, 0, 100);
+        rect(x, y, w, w);
+      };
   }
