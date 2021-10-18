@@ -96,7 +96,7 @@ function removeWalls(cell, neighbour) {
 // p5.js setup function (this func runs the first time code runs) 
 function setup() {
 	createCanvas(400, 400);
-	frameRate(15);
+	frameRate(20);
 
 	cols = floor(width / w);
 	rows = floor(height / w);
